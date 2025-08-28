@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Composers</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f4;
+            }
+
+            h1 {
+                text-align: center;
+                margin-top: 20px;
+            }
+
+            form {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+
+            input[type='search'] {
+                padding: 10px;
+                width: 300px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+
+            table {
+                width: 800px;
+                margin: 0 auto;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+            th,
+            td {
+                padding: 12px 15px;
+                border: 1px solid #ddd;
+                overflow: scroll;
+                white-space: nowrap;
+            }
+            th {
+                background-color: #f4f4f4;
+            }
+            #load-more {
+                display: none;
+                margin: 20px auto;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 12px;
+                background-color: #007bff;
+                color: white;
+            }
+            #load-more:hover {
+                background-color: #0056b3;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Composers</h1>
+        <form id="composer-search-form">
+            <input
+                type="search"
+                id="composer-search"
+                placeholder="Search composers..."
+            />
+        </form>
+        <table id="composer-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Born</th>
+                    <th>Death</th>
+                    <th>Era</th>
+                    <th>Bio</th>
+                    <th>Notable Works</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button id="load-more">Load more</button>
+        <script type="module">
+            let offset = 0
+            let limit = 2
+
+            function renderTable(data) {
+                const composerList = document.querySelector(
+                    '#composer-table tbody',
+                )
+                data.forEach((composer) => {
+                    const tr = document.createElement('tr')
+                    const td = document.createElement('td')
+                    td.textContent = composer.name
+                    td.title = composer.name
+                    tr.appendChild(td)
+                    const bornTd = document.createElement('td')
+                    bornTd.textContent = composer.born
+                    bornTd.title = composer.born
+                    tr.appendChild(bornTd)
+
+                    const deathTd = document.createElement('td')
+                    deathTd.textContent = composer.death || 'N/A'
+                    deathTd.title = composer.death || 'N/A'
+                    tr.appendChild(deathTd)
+
+                    const eraTd = document.createElement('td')
+                    eraTd.textContent = composer.era
+                    eraTd.title = composer.era
+                    tr.appendChild(eraTd)
+
+                    const bioTd = document.createElement('td')
+                    bioTd.textContent = composer.bio
+                    bioTd.title = composer.bio
+                    tr.appendChild(bioTd)
+
+                    const notableWorksTd = document.createElement('td')
+                    notableWorksTd.textContent =
+                        composer.notableWorks.join(', ')
+                    tr.appendChild(notableWorksTd)
+                    notableWorksTd.title = composer.notableWorks.join(', ')
+                    composerList.appendChild(tr)
+                })
+            }
+
+            const a = await fetch(
+                `/api/composers?offset=${offset}&limit=${limit}`,
+            )
+            const data = await a.json()
+            const composerList = document.querySelector('#composer-table tbody')
+            composerList.innerHTML = ''
+
+            renderTable(data)
+            document.getElementById('load-more').style.display = 'block'
+
+            const searchForm = document.getElementById('composer-search-form')
+
+            searchForm.addEventListener('submit', async (event) => {
+                event.preventDefault()
+                const searchInput = document.getElementById('composer-search')
+                const query = searchInput.value
+
+                const response = await fetch(
+                    `/api/composers?name=${encodeURIComponent(query)}`,
+                )
+
+                limit = 2
+
+                const filteredData = await response.json()
+                composerList.innerHTML = ''
+
+                renderTable(filteredData)
+            })
+
+            document
+                .querySelector('button')
+                .addEventListener('click', async (event) => {
+                    offset += limit
+                    const response = await fetch(
+                        `/api/composers?offset=${offset}&limit=${limit}`,
+                    )
+                    const newData = await response.json()
+                    renderTable(newData)
+                })
+        </script>
+    </body>
+</html>
