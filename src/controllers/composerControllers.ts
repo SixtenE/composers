@@ -225,8 +225,7 @@ async function addNotableWork(req: Request, res: Response) {
             return res.status(404).json({ error: 'Composer not found' })
         }
 
-        //@ts-ignore
-        composer.notableWorks = 123
+        composer.notableWorks.push(...validatedBody.data)
         await composer.save()
         return res.status(200).json(composer)
     } catch (error) {
